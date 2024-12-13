@@ -4,10 +4,10 @@ import pandas as pd
 import argparse
 
 # testing range constants
-SAMPLE_RANGE = 14
-DENSE_RANGE_PROPORTION = 0.6
-NDENSE_STEPS = 50
-NSPARSE_STEPS = 20
+SAMPLE_RANGE = 16
+DENSE_RANGE_PROPORTION = 0.5
+NDENSE_STEPS = 100
+NSPARSE_STEPS = 50
 SHIFT = 0.
 
 # simulation constants

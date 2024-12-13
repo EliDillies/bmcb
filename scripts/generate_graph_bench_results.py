@@ -13,6 +13,7 @@ PSE_COLOR = 'gray'
 ANNOTATIONS_COORD = [(0.2, 0.24), (0.6, 0.18), (1., 0.12), (1.4, 0.06), (1.8, 0.)]
 
 def get_parameters_of(filename):
+    filename = filename.split('/')[-1]
     params = filename.split('_')
     # params = ["results", "sref", "sref_value", "ntrials", "ntrials_value"]
     assert (params[0] == "results")
@@ -23,10 +24,18 @@ def logistic(x, L, x0, k):
 
 def subjective_point_of_equality(x_values, y_values):
     objective_spe = 0.5
+    prec_x, prec_y = x_values[0], y_values[0]
     for x, y in zip(x_values, y_values):
         if y >= objective_spe:
-            return x, y
+            if y - objective_spe > objective_spe - prec_y:
+                return prec_x, prec_y
+            else:
+                return x, y
+        prec_x, prec_y = x, y
     return None, None
+
+def rd(x):
+    return round(x, 2)
 
 def generate_and_save_graph(filename):
     sref, ntrials = get_parameters_of(filename)
@@ -41,7 +50,7 @@ def generate_and_save_graph(filename):
             trials_i = df[df['Trial'] == NSTDS*(step+1)+i]
             y[step, i] = trials_i['Comparison Result'].values.sum() / ntrials
 
-    fine_x = np.linspace(x.min(), x.max(), 300)
+    fine_x = np.linspace(x.min(), x.max(), 3000)
     initial_guess = [1, np.median(x), 1]  # Initial parameters: L, midpoint x0, and steepness k
 
     for i, std in enumerate(STDS):
@@ -58,7 +67,7 @@ def generate_and_save_graph(filename):
         plt.plot([x_pse, x_pse], [0., y_pse], linestyle='--', color=PSE_COLOR, linewidth=1.5)  # Vertical line
         w, h = ANNOTATIONS_COORD[i]
         bbox = dict(boxstyle="round", fc="0.8")
-        plt.annotate(f'x = {x_pse:.2f}', xy=(x_pse, 0.), xytext=(x_pse + w, h), arrowprops=dict(arrowstyle='->', lw=0.8), bbox=bbox)
+        plt.annotate(f'x = {rd(x_pse)}', xy=(x_pse, 0.), xytext=(x_pse + w, h), arrowprops=dict(arrowstyle='->', lw=0.8), bbox=bbox)
 
     plt.plot([x.min(), x.max()], [0.5, 0.5], linestyle='-', color=PSE_COLOR, linewidth=1.5)  # Honrizontal line
     plt.annotate(f'y = 1/2', xy=(x.min(), 0.5), xytext=(x.min(), 0.55), color=PSE_COLOR)
@@ -70,7 +79,7 @@ def generate_and_save_graph(filename):
     plt.ylabel("P(Stest > Sref)")
     plt.title(f"Psychometric functions for Sref = {sref}")
     plt.legend()
-    figname = f"psych_fun_sref_{sref}_ntrials_{ntrials}.png"
+    figname = f"psych_fun_sref_{sref}_ntrials_{ntrials}.svg"
     plt.savefig(figname)
     plt.show()
 
